@@ -1,46 +1,71 @@
 import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleCheck, faP, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
-import { Diversity1Outlined } from "@mui/icons-material";
 import UpdateArea from "./UpdateArea";
 import CreateArea from "./CreateArea";
+import ItemList from "./ItemList";
 
 function App() {
 
   // Tasks (ToDo List) State
   const [taskList, setTaskList] = useState([
-    {"title": "Task 1", "status": false},
-    {"title": "Task 2", "status": true}
+    {"id": 1, "content": "Task 1", "status": false},
+    {"id": 2, "content": "Task 2", "status": true}
   ]);
+
+  const [updatingTask, setUpdatingTask] = useState({
+    "id": 0, "content": "", "status": false
+  });
+
+  const [isEditingTask, setIsEditingTask] = useState(false);
 
   // Add Task
   function addTask(newTask) {
+    newTask.id = taskList.length + 1;
     setTaskList(prevTasks => [...prevTasks, newTask]);
   }
 
   // Delete Task 
   function deleteTask(id) {
-
+    setTaskList(prevTasks => prevTasks.filter(
+      (taskItem => taskItem.id !== id)
+    ))
   }
 
   // Mark task done or completed
-  function markTask(id) {
+  function checkTask(id) {
+    setTaskList(prevTasks => prevTasks.map(prevTask => {
+      if (prevTask.id === id) {
+        return { ...prevTask, "status": !prevTask.status };
+      }
 
+      return prevTask;
+    }));
   }
 
   // Change task for update
-  function changeTask(event) {
-
+  function changeTask(task) {
+    setUpdatingTask(task);
+    setIsEditingTask(true);
   }
 
   // Cancel Update
   function cancelUpdate() {
-
+    setIsEditingTask(false);
+    setUpdatingTask({
+      "id": 0, "content": "", "status": false
+    });
   }
 
   // Update Task
-  function updateTask() {
+  function updateTask(task) {
+    setTaskList(prevTasks => prevTasks.map(prevTask => {
+      if (prevTask.id === task.id) {
+        return { ...prevTask, "content": task.content };
+      }
 
+      return prevTask;
+    }));
+
+    cancelUpdate();
   }
 
   return (
@@ -49,39 +74,32 @@ function App() {
       <h1>To Do List App</h1>
       <br /><br />
 
-      {/* Update Task */}
-      <UpdateArea />
-
-      <br/>
-
-      {/* Add Task */}
-      <CreateArea />
+      {
+        /* Update Task / Add Task */
+        isEditingTask 
+          ? <UpdateArea 
+              onUpdate={updateTask} 
+              onCancel={cancelUpdate} 
+              updatingTask={updatingTask}
+            /> 
+          : <CreateArea onAdd={addTask} />
+      }
 
       <br/>
 
       {/* Display Task List */}
       {taskList.length === 0 && <p>No Tasks...</p>}
       {taskList
+        .sort((a,b) => a.id > b.id ? 1 : -1)
         .map((task, index) => (
-          <React.Fragment key={index}>
-            <div className="col taskBg">
-              <div className={task.status ? "done" : ""}>
-                <span className="taskNumber">{index + 1}</span>
-                <span className="taskTitle">{task.title}</span>
-              </div>
-              <div className="iconsWrap">
-                <span title="Completed / Not Completed">
-                  <FontAwesomeIcon icon={faCircleCheck} />
-                </span>
-                <span title="Edit">
-                  <FontAwesomeIcon icon={faPen} />
-                </span>
-                <span title="Delete">
-                  <FontAwesomeIcon icon={faTrashCan} />
-                </span>
-              </div>
-            </div>
-          </React.Fragment>
+          <ItemList 
+            key={task.id}
+            index={index}
+            task={task}
+            onCheck={checkTask}
+            onUpdate={changeTask}
+            onDelete={deleteTask}
+          />
         ))
       }
 

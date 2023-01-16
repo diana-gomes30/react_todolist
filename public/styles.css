@@ -36,11 +36,11 @@ body {
     justify-content: center;
 }
 
-.taskBg .taskTitle {
+.taskBg .taskContent {
     flex: 1;
 }
 
-.taskBg .done .taskTitle { 
+.taskBg .done .taskContent { 
     text-decoration: line-through;
     opacity: 0.3;
 }
