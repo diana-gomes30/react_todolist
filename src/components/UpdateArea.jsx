@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 function UpdateArea(props) {
     const [taskInUpdate, setTaskInUpdate] = useState(props.updatingTask);

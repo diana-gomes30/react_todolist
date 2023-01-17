@@ -1,4 +1,4 @@
-import React, { useState } from  "react";
+import { useState } from  "react";
 
 function CreateArea(props) {
     const [task, setTask] = useState({

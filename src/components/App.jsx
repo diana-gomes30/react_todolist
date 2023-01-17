@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UpdateArea from "./UpdateArea";
 import CreateArea from "./CreateArea";
 import ItemList from "./ItemList";

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
