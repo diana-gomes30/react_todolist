@@ -1,71 +1,108 @@
-import { useState } from "react";
+import { useReducer } from "react";
 import UpdateArea from "./UpdateArea";
 import CreateArea from "./CreateArea";
 import ItemList from "./ItemList";
 
+const initialTasks = [
+  {
+    "id": 1, 
+    "content": "Task 1", 
+    "status": false
+  },
+  {
+    "id": 2, 
+    "content": "Task 2", 
+    "status": true
+  }
+];
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "CHECK":
+      return state.map((task) => (
+        (task.id === action.id) 
+          ? { ...task, status: !task.status }
+          : task  
+      ));
+
+    case "ADD":
+      return [
+        ...state, 
+        {
+          id: state.length > 0 ? state[state.length - 1].id + 1 : 1, 
+          content: action.task.content, 
+          status: action.task.status
+        }
+      ];
+
+    case "UPDATE":
+      return state.map((task) => (
+        (task.id === action.task.id) 
+          ? { ...task, content: action.task.content }
+          : task  
+      ));
+
+    case "DELETE":
+      return state.filter((task => task.id !== action.id));
+
+    case "UPDATING-TASK":
+        return action.task;
+
+    case "CHANGE-TO-UPDATE":
+        return true;
+
+    case "CANCEL-UPDATE":
+        return false;
+    default:
+      return state;
+  }
+}
+
 function App() {
 
   // Tasks (ToDo List) State
-  const [taskList, setTaskList] = useState([
-    {"id": 1, "content": "Task 1", "status": false},
-    {"id": 2, "content": "Task 2", "status": true}
-  ]);
-
-  const [updatingTask, setUpdatingTask] = useState({
-    "id": 0, "content": "", "status": false
-  });
-
-  const [isEditingTask, setIsEditingTask] = useState(false);
+  const [taskList, dispatch] = useReducer(reducer, initialTasks);
+  const [updatingTask, dispatch2] = useReducer(reducer, {});
+  const [isEditingTask, dispatch3] = useReducer(reducer, false);
 
   // Add Task
-  function addTask(newTask) {
-    newTask.id = taskList.length + 1;
-    setTaskList(prevTasks => [...prevTasks, newTask]);
+  const addTask = (newTask) => {
+    dispatch({ type: "ADD", task: newTask });
   }
 
   // Delete Task 
-  function deleteTask(id) {
-    setTaskList(prevTasks => prevTasks.filter(
-      (taskItem => taskItem.id !== id)
-    ))
+  const deleteTask = (id) => {
+    dispatch({ type: "DELETE", id: id });
   }
 
   // Mark task done or completed
-  function checkTask(id) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === id) {
-        return { ...prevTask, "status": !prevTask.status };
-      }
+  const checkTask = (id) => {
+    dispatch({ type: "CHECK", id: id });
+  }
 
-      return prevTask;
-    }));
+  // Update Task
+  const updateTask = (task) => {
+    dispatch({ type: "UPDATE", task: task });
+    cancelUpdate();
   }
 
   // Change task for update
   function changeTask(task) {
-    setUpdatingTask(task);
-    setIsEditingTask(true);
+    dispatch2({ type: "UPDATING-TASK", task: task});
+    dispatch3({ type: "CHANGE-TO-UPDATE" });
   }
 
   // Cancel Update
   function cancelUpdate() {
-    setIsEditingTask(false);
-    setUpdatingTask({
-      "id": 0, "content": "", "status": false
-    });
-  }
-
-  // Update Task
-  function updateTask(task) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === task.id) {
-        return { ...prevTask, "content": task.content };
+    dispatch3({ type: "CANCEL-UPDATE" });
+    dispatch2({ 
+      type: "UPDATING-TASK", 
+      task: {
+        "id": 0, 
+        "content": "", 
+        "status": false
       }
-
-      return prevTask;
-    }));
-
-    cancelUpdate();
+    });
   }
 
   return (
