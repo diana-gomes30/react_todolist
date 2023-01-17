@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UpdateArea from "./UpdateArea";
 import CreateArea from "./CreateArea";
 import ItemList from "./ItemList";
 
 function App() {
 
-  // Tasks (ToDo List) State
-  const [taskList, setTaskList] = useState([
-    {"id": 1, "content": "Task 1", "status": false},
-    {"id": 2, "content": "Task 2", "status": true}
-  ]);
+  var [taskList, setTaskList] = useState([]);
 
   const [updatingTask, setUpdatingTask] = useState({
     "id": 0, "content": "", "status": false
@@ -17,28 +13,65 @@ function App() {
 
   const [isEditingTask, setIsEditingTask] = useState(false);
 
+  useEffect(() => {
+    setTaskList(JSON.parse(localStorage.getItem("tasks")));
+  }, []);
+
+  function getTasks() {
+    return localStorage.getItem("tasks") 
+      ? JSON.parse(localStorage.getItem("tasks"))
+      : [];
+  }
+
   // Add Task
   function addTask(newTask) {
-    newTask.id = taskList.length + 1;
-    setTaskList(prevTasks => [...prevTasks, newTask]);
+    var tasks = getTasks();
+    newTask.id = tasks.length + 1;
+    tasks = [...tasks, newTask];
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    setTaskList(JSON.parse(localStorage.getItem("tasks")));
   }
 
   // Delete Task 
   function deleteTask(id) {
-    setTaskList(prevTasks => prevTasks.filter(
-      (taskItem => taskItem.id !== id)
-    ))
+    var tasks = getTasks().filter(
+        (task => task.id !== id)
+      );
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    setTaskList(JSON.parse(localStorage.getItem("tasks")));
   }
 
   // Mark task done or completed
   function checkTask(id) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === id) {
-        return { ...prevTask, "status": !prevTask.status };
-      }
+    const tasks = getTasks();
 
-      return prevTask;
-    }));
+    const newList = tasks.map(task => (
+      (task.id === id)
+        ? { ...task, "status": !task.status }
+        : task));
+
+    localStorage.setItem("tasks", JSON.stringify(newList));
+
+    setTaskList(JSON.parse(localStorage.getItem("tasks")));
+  }
+
+  // Update Task
+  function updateTask(updateTask) {
+    const tasks = getTasks();
+
+    const newList = tasks.map(task => (
+      (task.id === updateTask.id)
+        ? { ...task, "content": updateTask.content }
+        : task));
+
+    localStorage.setItem("tasks", JSON.stringify(newList));
+
+    setTaskList(JSON.parse(localStorage.getItem("tasks")));
+
+    cancelUpdate();
   }
 
   // Change task for update
@@ -53,19 +86,6 @@ function App() {
     setUpdatingTask({
       "id": 0, "content": "", "status": false
     });
-  }
-
-  // Update Task
-  function updateTask(task) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === task.id) {
-        return { ...prevTask, "content": task.content };
-      }
-
-      return prevTask;
-    }));
-
-    cancelUpdate();
   }
 
   return (
@@ -88,9 +108,8 @@ function App() {
       <br/>
 
       {/* Display Task List */}
-      {taskList.length === 0 && <p>No Tasks...</p>}
-      {taskList
-        .sort((a,b) => a.id > b.id ? 1 : -1)
+      {!taskList.length && <p>No Tasks...</p>}
+      {taskList?.sort((a,b) => a.id > b.id ? 1 : -1)
         .map((task, index) => (
           <ItemList 
             key={task.id}
