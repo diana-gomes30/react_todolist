@@ -1,44 +1,52 @@
-import { useState } from "react";
-import UpdateArea from "./UpdateArea";
-import CreateArea from "./CreateArea";
-import ItemList from "./ItemList";
+import { useState, useEffect } from 'react';
+import UpdateArea from './UpdateArea';
+import CreateArea from './CreateArea';
+import ItemList from './ItemList';
 
 function App() {
+  const initialTaskList = localStorage.getItem('tasks')
+    ? JSON.parse(localStorage.getItem('tasks'))
+    : [];
 
   // Tasks (ToDo List) State
-  const [taskList, setTaskList] = useState([
-    {"id": 1, "content": "Task 1", "status": false},
-    {"id": 2, "content": "Task 2", "status": true}
-  ]);
+  const [taskList, setTaskList] = useState(initialTaskList);
 
   const [updatingTask, setUpdatingTask] = useState({
-    "id": 0, "content": "", "status": false
+    id: 0,
+    content: '',
+    status: false,
   });
 
   const [isEditingTask, setIsEditingTask] = useState(false);
 
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(taskList));
+  }, [taskList]);
+
   // Add Task
   function addTask(newTask) {
-    newTask.id = taskList.length + 1;
-    setTaskList(prevTasks => [...prevTasks, newTask]);
+    newTask.id = taskList.length > 0 ? taskList[taskList.length - 1].id + 1 : 1;
+    setTaskList((prevTasks) => [...prevTasks, newTask]);
   }
 
-  // Delete Task 
+  // Delete Task
   function deleteTask(id) {
-    setTaskList(prevTasks => prevTasks.filter(
-      (taskItem => taskItem.id !== id)
-    ))
+    setTaskList((prevTasks) =>
+      prevTasks.filter((taskItem) => taskItem.id !== id)
+    );
   }
 
   // Mark task done or completed
   function checkTask(id) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === id) {
-        return { ...prevTask, "status": !prevTask.status };
-      }
+    setTaskList((prevTasks) =>
+      prevTasks.map((prevTask) => {
+        if (prevTask.id === id) {
+          return { ...prevTask, status: !prevTask.status };
+        }
 
-      return prevTask;
-    }));
+        return prevTask;
+      })
+    );
   }
 
   // Change task for update
@@ -51,48 +59,56 @@ function App() {
   function cancelUpdate() {
     setIsEditingTask(false);
     setUpdatingTask({
-      "id": 0, "content": "", "status": false
+      id: 0,
+      content: '',
+      status: false,
     });
   }
 
   // Update Task
   function updateTask(task) {
-    setTaskList(prevTasks => prevTasks.map(prevTask => {
-      if (prevTask.id === task.id) {
-        return { ...prevTask, "content": task.content };
-      }
+    setTaskList((prevTasks) =>
+      prevTasks.map((prevTask) => {
+        if (prevTask.id === task.id) {
+          return { ...prevTask, content: task.content };
+        }
 
-      return prevTask;
-    }));
+        return prevTask;
+      })
+    );
 
     cancelUpdate();
   }
 
   return (
     <div className="container app">
-      <br /><br />
+      <br />
+      <br />
       <h1>To Do List App</h1>
-      <br /><br />
+      <br />
+      <br />
 
       {
         /* Update Task / Add Task */
-        isEditingTask 
-          ? <UpdateArea 
-              onUpdate={updateTask} 
-              onCancel={cancelUpdate} 
-              updatingTask={updatingTask}
-            /> 
-          : <CreateArea onAdd={addTask} />
+        isEditingTask ? (
+          <UpdateArea
+            onUpdate={updateTask}
+            onCancel={cancelUpdate}
+            updatingTask={updatingTask}
+          />
+        ) : (
+          <CreateArea onAdd={addTask} />
+        )
       }
 
-      <br/>
+      <br />
 
       {/* Display Task List */}
       {taskList.length === 0 && <p>No Tasks...</p>}
       {taskList
-        .sort((a,b) => a.id > b.id ? 1 : -1)
+        .sort((a, b) => (a.id > b.id ? 1 : -1))
         .map((task, index) => (
-          <ItemList 
+          <ItemList
             key={task.id}
             index={index}
             task={task}
@@ -100,10 +116,8 @@ function App() {
             onUpdate={changeTask}
             onDelete={deleteTask}
           />
-        ))
-      }
-
-    </div> 
+        ))}
+    </div>
   );
 }
 
