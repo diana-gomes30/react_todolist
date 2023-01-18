@@ -1,22 +1,13 @@
-import { useReducer } from 'react';
+import { useReducer, useEffect } from 'react';
 import UpdateArea from './UpdateArea';
 import CreateArea from './CreateArea';
 import ItemList from './ItemList';
 import { reducer } from '../reducer';
 
 const initialState = {
-  taskList: [
-    {
-      id: 1,
-      content: 'Task 1',
-      status: false,
-    },
-    {
-      id: 2,
-      content: 'Task 2',
-      status: true,
-    },
-  ],
+  taskList: localStorage.getItem('tasks')
+    ? JSON.parse(localStorage.getItem('tasks'))
+    : [],
   updatingTask: {},
   isEditingTask: false,
 };
@@ -24,6 +15,10 @@ const initialState = {
 function App() {
   // Tasks (ToDo List) State
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(state.taskList));
+  }, [state.taskList]);
 
   // Add Task
   const addTask = (newTask) => {
